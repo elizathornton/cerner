@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cerner SMART Launch</title>
+  <script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script>
+</head>
+<body>
+  <p>Starting SMART launch...</p>
+
+  <script>
+    FHIR.oauth2.authorize({
+      clientId: "2fa84e5c-343a-481e-ad65-c2a1fb5a1768",
+      scope: "launch openid fhirUser patient/*.read user/*.read user/ServiceRequest.write",
+      redirectUri: "index.html"
+    });
+  </script>
+</body>
+</html>

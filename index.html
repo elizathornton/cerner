@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cerner SMART ServiceRequest Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    button { padding: 10px 14px; margin-top: 12px; }
+    pre { background: #f6f8fa; padding: 12px; border-radius: 8px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>Cerner SMART ServiceRequest Demo</h2>
+  <div id="status">Loading...</div>
+  <div id="patientSummary"></div>
+  <button id="createOrderBtn" disabled>Create one FIT ServiceRequest</button>
+  <pre id="output"></pre>
+
+  <script src="js/app.js?v=1"></script>
+</body>
+</html>
