@@ -101,6 +101,15 @@ FHIR.oauth2.ready()
   .then(async function (client) {
     smartClient = client;
 
+    console.log("SMART ready");
+    console.log("serverUrl:", client.state?.serverUrl);
+    console.log("patient id from context:", client.patient?.id);
+    console.log("token response:", client.state?.tokenResponse);
+
+    if (!client.patient || !client.patient.id) {
+      throw new Error("No patient context was provided in this launch.");
+    }
+
     const patient = await client.patient.read();
     launchedPatient = patient;
 
@@ -123,8 +132,26 @@ FHIR.oauth2.ready()
       serverUrl: client.state?.serverUrl || null
     });
   })
-  .catch(function (error) {
+  .catch(async function (error) {
     document.getElementById("status").textContent = "SMART launch failed";
-    showOutput(error?.stack || error?.message || error);
+
+    const details = {
+      message: error?.message || "Unknown error",
+      stack: error?.stack || null
+    };
+
+    if (error?.status) {
+      details.httpStatus = error.status;
+    }
+
+    if (error?.response) {
+      try {
+        details.responseBody = await error.response.text();
+      } catch (e) {
+        details.responseBody = "Could not read response body";
+      }
+    }
+
+    showOutput(details);
     console.error(error);
   });
