@@ -3,18 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cerner SMART Launch</title>
+  <title>Cerner Launch Test</title>
   <script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script>
 </head>
 <body>
-  <p>Starting SMART launch...</p>
+  <p>Starting SMART launch... Version LAUNCH-1</p>
 
   <script>
+    console.log("launch.html loaded");
+    console.log("About to call authorize");
+
     FHIR.oauth2.authorize({
       clientId: "200d9fed-28c1-474a-b9b2-09909d5f5cbf",
-      scope: "launch launch/patient openid fhirUser online_access patient/Patient.read"
+      scope: "launch launch/patient openid fhirUser online_access patient/Patient.read",
       redirectUri: "https://elizathornton.github.io/cerner/index.html"
     });
+
+    console.log("authorize call finished");
   </script>
 </body>
 </html>
