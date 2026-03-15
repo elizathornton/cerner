@@ -15,7 +15,8 @@
 
     FHIR.oauth2.authorize({
       clientId: "200d9fed-28c1-474a-b9b2-09909d5f5cbf",
-      scope: "launch launch/patient openid fhirUser online_access patient/Patient.read patient/ServiceRequest.write",
+      scope: "launch launch/patient openid fhirUser online_access patient/Patient.read patient/Communication.write user/Communication.write",
+      
       redirectUri: "https://elizathornton.github.io/cerner/index.html"
     });
 
