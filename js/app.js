@@ -4,9 +4,7 @@ let launchedPatient = null;
 function getPatientName(patient) {
   if (!patient.name || !patient.name.length) return "(no name)";
   const n = patient.name[0];
-  const given = (n.given || []).join(" ");
-  const family = n.family || "";
-  return `${given} ${family}`.trim();
+  return `${(n.given || []).join(" ")} ${n.family || ""}`.trim();
 }
 
 function showOutput(obj) {
@@ -14,53 +12,34 @@ function showOutput(obj) {
   document.getElementById("output").textContent = text;
 }
 
-function findBestIdentifier(patient) {
-  if (!patient.identifier || !patient.identifier.length) return "(no identifier)";
-  const mrn = patient.identifier.find(id => id.system && id.system.includes("hospital"));
-  return mrn?.value || patient.identifier[0]?.value || "(no identifier)";
-}
-
-function buildFitServiceRequest(patient, client) {
-  // This is a starter payload.
-  // You will likely need to replace category/code with valid Millennium values.
+function buildCommunication(patient) {
   return {
-    resourceType: "ServiceRequest",
-    status: "active",
-    intent: "order",
-    priority: "routine",
+    resourceType: "Communication",
+    status: "in-progress",
     subject: {
       reference: `Patient/${patient.id}`,
       display: getPatientName(patient)
     },
-    // Encounter is often present in launched Cerner context, but not guaranteed.
-    ...(client.getEncounterId && client.getEncounterId()
-      ? { encounter: { reference: `Encounter/${client.getEncounterId()}` } }
-      : {}),
-    authoredOn: new Date().toISOString(),
     category: [
       {
-        text: "Laboratory"
+        text: "Provider message"
       }
     ],
-    code: {
-      text: "FIT test"
-    },
-    note: [
+    payload: [
       {
-        text: "Created by SMART app demo"
+        contentString: "Patient appears due for FIT screening. Please review."
       }
     ]
   };
 }
 
-async function createOneServiceRequest() {
+async function createOneCommunication() {
   try {
-    document.getElementById("status").textContent = "Creating ServiceRequest...";
+    document.getElementById("status").textContent = "Creating Communication...";
 
-    const payload = buildFitServiceRequest(launchedPatient, smartClient);
+    const payload = buildCommunication(launchedPatient);
 
-    // Using a direct FHIR POST. This is the key write step.
-    const result = await smartClient.request("ServiceRequest", {
+    const result = await smartClient.request("Communication", {
       method: "POST",
       headers: {
         "Content-Type": "application/fhir+json"
@@ -68,21 +47,24 @@ async function createOneServiceRequest() {
       body: JSON.stringify(payload)
     });
 
-    document.getElementById("status").textContent = "ServiceRequest create call succeeded";
+    document.getElementById("status").textContent = "Communication create call succeeded";
     showOutput({
-      message: "ServiceRequest created",
+      message: "Communication created",
       submittedPayload: payload,
       serverResponse: result
     });
   } catch (error) {
-    document.getElementById("status").textContent = "ServiceRequest create failed";
+    document.getElementById("status").textContent = "Communication create failed";
 
-    let details = {
+    const details = {
       message: error?.message || "Unknown error"
     };
 
+    if (error?.status) {
+      details.httpStatus = error.status;
+    }
+
     if (error?.response) {
-      details.httpStatus = error.status || error.response.status;
       try {
         details.responseBody = await error.response.text();
       } catch (e) {
@@ -101,11 +83,6 @@ FHIR.oauth2.ready()
   .then(async function (client) {
     smartClient = client;
 
-    console.log("SMART ready");
-    console.log("serverUrl:", client.state?.serverUrl);
-    console.log("patient id from context:", client.patient?.id);
-    console.log("token response:", client.state?.tokenResponse);
-
     if (!client.patient || !client.patient.id) {
       throw new Error("No patient context was provided in this launch.");
     }
@@ -120,38 +97,19 @@ FHIR.oauth2.ready()
       <p><b>DOB:</b> ${patient.birthDate || ""}</p>
       <p><b>Gender:</b> ${patient.gender || ""}</p>
       <p><b>Patient ID:</b> ${patient.id || ""}</p>
-      <p><b>Identifier:</b> ${findBestIdentifier(patient)}</p>
     `;
 
-    document.getElementById("createOrderBtn").disabled = false;
-    document.getElementById("createOrderBtn").addEventListener("click", createOneServiceRequest);
+    document.getElementById("createBtn").disabled = false;
+    document.getElementById("createBtn").addEventListener("click", createOneCommunication);
 
     showOutput({
-      info: "Ready to create one ServiceRequest",
+      info: "Ready to create one Communication",
       patientId: patient.id,
       serverUrl: client.state?.serverUrl || null
     });
   })
-  .catch(async function (error) {
+  .catch(function (error) {
     document.getElementById("status").textContent = "SMART launch failed";
-
-    const details = {
-      message: error?.message || "Unknown error",
-      stack: error?.stack || null
-    };
-
-    if (error?.status) {
-      details.httpStatus = error.status;
-    }
-
-    if (error?.response) {
-      try {
-        details.responseBody = await error.response.text();
-      } catch (e) {
-        details.responseBody = "Could not read response body";
-      }
-    }
-
-    showOutput(details);
+    showOutput(error?.stack || error?.message || error);
     console.error(error);
   });
