@@ -10,17 +10,24 @@
   <p>Starting SMART launch... Version LAUNCH-1</p>
 
   <script>
-    console.log("launch.html loaded");
-    console.log("About to call authorize");
 
     FHIR.oauth2.authorize({
       clientId: "200d9fed-28c1-474a-b9b2-09909d5f5cbf",
-      scope: "launch launch/patient openid fhirUser online_access patient/Patient.read patient/Communication.write user/Communication.write",
+      scope: "launch launch/patient openid fhirUser online_access patient/Patient.read patient/Communication.read patient/Communication.write user/Communication.write",
       
       redirectUri: "https://elizathornton.github.io/cerner/index.html"
+
+
     });
 
-    console.log("authorize call finished");
+      console.log("Granted token response:", client.state?.tokenResponse);
+      console.log("Granted scope string:", client.state?.tokenResponse?.scope);
+      ShowOutput({
+        info: "Launch succeeded",
+        grantedScopes: client.state?.tokenResponse?.scope || "(none)"
+      });
+
+
   </script>
 </body>
 </html>
